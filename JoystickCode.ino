@@ -1,16 +1,12 @@
-// letsarduino.com
-// [Project 11] - 2 Servos Using a Joystick 
-//  (thumbstick) + Arduino
-
 #include <Servo.h>  
 
-int pointPin = 9;   
+int pointPin = 10;   
 int pointPotPin = A2;  
 int tiltPin =  9;   
 int tiltPotPin = A3;  
 
-int servo1Degree=90;
-int servo2Degree=90;
+int pointServoDegree=90;
+int tiltServoDegree=90;
 
 Servo pointServo;  
 Servo tiltServo;    
@@ -20,48 +16,64 @@ int pointServoPosition;
 int tiltPotValue;         
 int tiltServoPosition;    
 
+int pointIncrementSize=3;
+int tiltIncrementSize=1;
+
+int pointMaxAngle=180;
+int pointMinAngle=0;
+int tiltMaxAngle=180;
+int tiltMinAngle=0;
+
+int buttonPin=12;
+int buttonState = 0;
+
 void setup()   
 {
   Serial.begin(9600);
-  //pointServo.attach(pointPin);   
-  tiltServo.attach(tiltPin);         
+  pointServo.attach(pointPin);   
+  tiltServo.attach(tiltPin);   
+
+  pinMode(buttonPin, INPUT_PULLUP);
 }
 
 void loop()  
-{
+{ 
   pointPotValue  = analogRead(pointPotPin); 
-  tiltPotValue  = analogRead(tiltPotPin);  
+  tiltPotValue  = analogRead(tiltPotPin); 
+  buttonState = digitalRead(buttonPin); 
   Serial.print(pointPotValue); Serial.print(",");
   Serial.print(tiltPotValue); Serial.print(",");
+  Serial.print(buttonState); Serial.print(",");
 
   if (pointPotValue>1000) {
-    servo1Degree+=1;
+    pointServoDegree+=pointIncrementSize;
   } else if (pointPotValue<50) {
-    servo1Degree-=1;
+    pointServoDegree-=pointIncrementSize;
   } else {
-    servo1Degree=servo1Degree;
+    pointServoDegree=pointServoDegree;
   }
-  if (servo1Degree<0) {
-    servo1Degree=0;
-  } else if (servo1Degree>180) {
-    servo1Degree=180;
+  if (pointServoDegree<pointMinAngle) {
+    pointServoDegree=pointMinAngle;
+  } else if (pointServoDegree>pointMaxAngle) {
+    pointServoDegree=pointMaxAngle;
   }
 
   if (tiltPotValue>1000) {
-    servo2Degree+=1;
+    tiltServoDegree+=tiltIncrementSize;
   } else if (tiltPotValue<50) {
-    servo2Degree-=1;
+    tiltServoDegree-=tiltIncrementSize;
   } else {
-    servo2Degree=servo2Degree;
+    tiltServoDegree=tiltServoDegree;
   }
-  if (servo2Degree<0) {
-    servo2Degree=0;
-  } else if (servo2Degree>180) {
-    servo2Degree=180;
-  }
-  //pointServo.write(servoDegree);      
-  Serial.print(servo1Degree); Serial.print(",");
-  Serial.println(servo2Degree);
-  tiltServo.write(servo2Degree);       
+  if (tiltServoDegree<tiltMinAngle) {
+    tiltServoDegree=tiltMinAngle;
+  } else if (tiltServoDegree>tiltMaxAngle) {
+    tiltServoDegree=tiltMaxAngle;
+  }     
+  Serial.print(pointServoDegree); Serial.print(",");
+  Serial.println(tiltServoDegree);
+
+  pointServo.write(pointServoDegree); 
+  tiltServo.write(tiltServoDegree);         
   delay(20);    
 }
