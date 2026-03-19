@@ -11,8 +11,8 @@ int shootButtonState = 0;
 
 //Boundary angle positions
 int zeroPosition = 100;
-int boundary1 = 60;
-int boundary2 = 140;
+int boundary1 = 30;
+int boundary2 = 175;
 
 boolean shootState=true;
 
@@ -32,6 +32,12 @@ void loop() {
     myServo.write(zeroPosition);
   } else if (shootButtonState == HIGH && (millis()-startTime>400)) {
     startTime=millis();
+    myServo.write(115);
+    delay(400);
+    myServo.write(boundary1);
+    delay(300);
+    
+    /*
     if (shootState==true) {
       myServo.write(boundary1);
       shootState=!shootState;
@@ -39,5 +45,6 @@ void loop() {
       myServo.write(boundary2);
       shootState=!shootState;
     }
+    */
   }
 }
