@@ -3,7 +3,7 @@
 Servo myServo;
 
 const int zeroButtonPin = 5;
-const int shootButtonPin = 6;
+const int shootButtonPin = 12;
 const int servoPin = 2;
 
 int zeroButtonState = 0;
@@ -16,23 +16,28 @@ int boundary2 = 140;
 
 boolean shootState=true;
 
+unsigned long startTime;
+
 void setup() {
+  Serial.begin(9600);
   myServo.attach(servoPin);
-  pinMode(zeroButtonPin, INPUT_PULLUP);
+  pinMode(shootButtonPin, INPUT_PULLUP);
 }
 
 void loop() {
-  zeroButtonState = !digitalRead(zeroButtonPin);
+  //zeroButtonState = !digitalRead(zeroButtonPin);
   shootButtonState = !digitalRead(shootButtonPin);
+  Serial.println(shootButtonState);
   if (zeroButtonState == HIGH) {
     myServo.write(zeroPosition);
-  } else if (shootButtonPin == HIGH) {
+  } else if (shootButtonState == HIGH && (millis()-startTime>400)) {
+    startTime=millis();
     if (shootState==true) {
       myServo.write(boundary1);
-      shootState=false;
+      shootState=!shootState;
     } else {
       myServo.write(boundary2);
-      shootState=true;
+      shootState=!shootState;
     }
   }
 }
