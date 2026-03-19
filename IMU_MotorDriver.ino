@@ -16,10 +16,10 @@ const uint8_t FXOS_ADDR = 0x1E;
 #define ACC_SCALE 4096.0  // 2g mode, 14-bit
 #define MAG_SCALE 0.1     // uT per LSB
 
-#define motor_pin1 2
-#define motor_pin2 3
-#define motor_pin3 9
-#define motor_pin4 10
+#define motor_pin1 2 //E1
+#define motor_pin2 3 //D1
+#define motor_pin3 4 //E2
+#define motor_pin4 5 //D2
 
 void writeRegister(uint8_t reg, uint8_t val) {
   Wire.beginTransmission(FXOS_ADDR);
@@ -115,15 +115,20 @@ void loop() {
   if (smoothed_pitch>39) {
     digitalWrite(motor_pin1, HIGH);
     digitalWrite(motor_pin2, LOW);
+    digitalWrite(motor_pin3, HIGH);
+    digitalWrite(motor_pin4, HIGH);
     Serial.print(smoothed_pitch);
     Serial.println("Right");
   } else if (smoothed_pitch<-39) {
     digitalWrite(motor_pin1, HIGH);
     digitalWrite(motor_pin2, HIGH);
+    digitalWrite(motor_pin3, HIGH);
+    digitalWrite(motor_pin4, LOW);
     Serial.print(smoothed_pitch);
     Serial.println("Left");
   } else {
     digitalWrite(motor_pin1, LOW);
+    digitalWrite(motor_pin3, LOW);
     Serial.println(smoothed_pitch);
   }
 }
