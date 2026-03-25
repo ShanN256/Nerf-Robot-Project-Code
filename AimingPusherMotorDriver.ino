@@ -3,7 +3,7 @@
 #include <math.h>
 
 /*
-shoot button on joystick pin 8
+shoot button (joystick) pin 8
 
 Joystick Analog pins
 point servo pin 12
@@ -17,7 +17,6 @@ float smoothed_roll = 0.0;  // Holds the smoothed value
 float smoothed_pitch = 0.0;
 
 const uint8_t FXOS_ADDR = 0x1E;
-
 #define WHO_AM_I      0x0D
 #define CTRL_REG1     0x2A
 #define M_CTRL_REG1   0x5B
@@ -27,6 +26,7 @@ const uint8_t FXOS_ADDR = 0x1E;
 #define ACC_SCALE 4096.0  // 2g mode, 14-bit
 #define MAG_SCALE 0.1     // uT per LSB
 
+//Enable and Direction Pins for Motordriver (moving axis)
 #define motor_pin1 2 //E1
 #define motor_pin2 3 //D1
 #define motor_pin3 4 //E2
@@ -47,6 +47,7 @@ uint8_t readRegister(uint8_t reg) {
   return Wire.read();
 }
 
+//Read values
 void readAccelMag(float* ax, float* ay, float* az, float* mx, float* my, float* mz) {
   Wire.beginTransmission(FXOS_ADDR);
   Wire.write(OUT_X_MSB);
@@ -76,7 +77,7 @@ const int pusherPin = 11;
 
 int shootButtonState = 0;
 
-//Boundary angle positions
+//Pusher boundary angle positions
 int boundary1 = 30;
 int boundary2 = 115;
 
@@ -145,6 +146,7 @@ void setup()
 
 void loop()  
 { 
+  //Reading data from Joystick
   pointPotValue  = analogRead(pointPotPin); 
   tiltPotValue  = analogRead(tiltPotPin); 
   shootButtonState = !digitalRead(shootButtonPin);
@@ -152,7 +154,7 @@ void loop()
   Serial.print(pointPotValue); Serial.print(",");
   Serial.print(tiltPotValue); Serial.print(",");
   Serial.print(shootButtonState); Serial.print(",");
-
+  //Increment servo degree according to Joystick value
   if (pointPotValue>1000) {
     pointServoDegree+=pointIncrementSize;
   } else if (pointPotValue<50) {
@@ -160,6 +162,7 @@ void loop()
   } else {
     pointServoDegree=pointServoDegree;
   }
+  //Ensure degree remains within boundaries
   if (pointServoDegree<pointMinAngle) {
     pointServoDegree=pointMinAngle;
   } else if (pointServoDegree>pointMaxAngle) {
@@ -181,6 +184,7 @@ void loop()
   Serial.print(pointServoDegree); Serial.print(",");
   Serial.println(tiltServoDegree);
 
+  //If the shoot button pressed and pusher action is complete
   if (shootButtonState == HIGH && (millis()-startTime>700)) {
     startTime=millis();
     pusherServo.write(boundary2);
@@ -188,10 +192,12 @@ void loop()
     pusherServo.write(boundary1);
     delay(300);
   }
-
+  //Update Aiming servo angles
   pointServo.write(pointServoDegree); 
   tiltServo.write(tiltServoDegree); 
 
+
+  //IMU Section
   float ax, ay, az, mx, my, mz;
   readAccelMag(&ax, &ay, &az, &mx, &my, &mz);
 
@@ -216,18 +222,19 @@ void loop()
   //smoothed_roll = SMOOTHING_FACTOR * roll + (1.0 - SMOOTHING_FACTOR) * smoothed_roll;
   smoothed_pitch = SMOOTHING_FACTOR * pitch + (1.0 - SMOOTHING_FACTOR) * smoothed_pitch;
   
+  //Turn Moving motors according to IMU Deadzone using motordriver
   if (smoothed_pitch>39) {
-    digitalWrite(motor_pin1, HIGH);
-    digitalWrite(motor_pin2, LOW);
-    digitalWrite(motor_pin3, HIGH);
-    digitalWrite(motor_pin4, HIGH);
-    Serial.print(smoothed_pitch);
-    Serial.println("Right");
-  } else if (smoothed_pitch<-39) {
     digitalWrite(motor_pin1, HIGH);
     digitalWrite(motor_pin2, HIGH);
     digitalWrite(motor_pin3, HIGH);
     digitalWrite(motor_pin4, LOW);
+    Serial.print(smoothed_pitch);
+    Serial.println("Right");
+  } else if (smoothed_pitch<-39) {
+    digitalWrite(motor_pin1, HIGH);
+    digitalWrite(motor_pin2, LOW);
+    digitalWrite(motor_pin3, HIGH);
+    digitalWrite(motor_pin4, HIGH);
     Serial.print(smoothed_pitch);
     Serial.println("Left");
   } else {
