@@ -7,8 +7,8 @@ Pin Layout:
 Joystick shoot button  pin 8
 Joystick Analog pins A2, A3
 
-point servo pin 12
-tilt servo pin 10
+point servo pin 10
+tilt servo pin 12
 pusherPin 11
 */
 
@@ -65,10 +65,10 @@ void readAccel(float* ax, float* ay, float* az) {
 //Pusher Variables
 Servo pusherServo;
 
-const int shootButtonPin = 8; //Input
+const int shootButtonPin = 8; //Input from Joystick
 const int pusherPin = 11; //Servo Output
 
-int shootButtonState = 0; //Store boolean value of Joystick 
+int shootButtonState = 0; //Stores boolean value of Joystick button as an integer
 
 //Pusher boundary angle positions
 const int boundary1 = 30;
@@ -105,7 +105,7 @@ const int tiltMinAngle=116;
 
 void setup()   
 {
-  Serial.begin(9600);
+  Serial.begin(9600); //All values used in the program are transmitted to the Serial Monitor for easy debugging
 
   pointServo.attach(pointPin);   
   tiltServo.attach(tiltPin);   
@@ -142,7 +142,8 @@ void loop()
   //Reading data from Joystick
   pointPotValue  = analogRead(pointPotPin); 
   tiltPotValue  = analogRead(tiltPotPin); 
-  shootButtonState = !digitalRead(shootButtonPin);
+  shootButtonState = !digitalRead(shootButtonPin); //shoot button pin reads 0 (LOW) when button is pressed
+  //This is inverted to make logic more intuitive later
 
   Serial.print(pointPotValue); Serial.print(",");
   Serial.print(tiltPotValue); Serial.print(",");
@@ -161,30 +162,18 @@ void loop()
     pointServoDegree+=pointIncrementSize;
   } else if (pointPotValue<50) {
     pointServoDegree-=pointIncrementSize;
-  } else {
-    pointServoDegree=pointServoDegree;
   }
   //Ensure point servo degree remains within boundaries
-  if (pointServoDegree<pointMinAngle) {
-    pointServoDegree=pointMinAngle;
-  } else if (pointServoDegree>pointMaxAngle) {
-    pointServoDegree=pointMaxAngle;
-  }
+  pointServoDegree = constrain(pointServoDegree, pointMinAngle, pointMaxAngle);
 
   //Increment tilt servo degree according to Joystick value
   if (tiltPotValue>1000) {
     tiltServoDegree+=tiltIncrementSize;
   } else if (tiltPotValue<50) {
     tiltServoDegree-=tiltIncrementSize;
-  } else {
-    tiltServoDegree=tiltServoDegree;
   }
   //Ensure tilt servo degree remains within boundaries
-  if (tiltServoDegree<tiltMinAngle) {
-    tiltServoDegree=tiltMinAngle;
-  } else if (tiltServoDegree>tiltMaxAngle) {
-    tiltServoDegree=tiltMaxAngle;
-  }     
+  tiltServoDegree = constrain(tiltServoDegree, tiltMinAngle, tiltMaxAngle);    
 
   Serial.print(pointServoDegree); Serial.print(",");
   Serial.print(tiltServoDegree); Serial.print(",");
